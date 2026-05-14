@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Science Jungle Adventure - Part 2</title>
+    <style>
+        :root {
+            --primary-color: #27ae60;
+            --secondary-color: #f1c40f;
+            --bg-color: #1a2a1a;
+            --text-color: #ecf0f1;
+            --card-bg: rgba(39, 174, 96, 0.15);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1518173946687-a4c8a9833d8e?auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+        }
+
+        #game-container {
+            width: 90%;
+            max-width: 800px;
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 25px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 12px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        #progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            width: 0%;
+            transition: width 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #timer {
+            font-size: 1.8rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            color: var(--secondary-color);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        .timer-red {
+            color: #e74c3c !important;
+            animation: shake 0.5s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        #question-text {
+            font-size: 1.5rem;
+            margin-bottom: 2.5rem;
+            line-height: 1.4;
+            font-weight: 600;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.2rem;
+        }
+
+        .option-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            padding: 1.2rem;
+            border-radius: 15px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.15rem;
+            font-weight: 500;
+        }
+
+        .option-btn:hover {
+            background: rgba(39, 174, 96, 0.3);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .option-btn.correct {
+            background: #27ae60 !important;
+            border-color: #2ecc71 !important;
+            transform: scale(1.05);
+        }
+
+        .option-btn.wrong {
+            background: #c0392b !important;
+            border-color: #e74c3c !important;
+            animation: shake 0.4s ease;
+        }
+
+        #essay-input {
+            width: 100%;
+            padding: 1.2rem;
+            border-radius: 15px;
+            border: 2px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.3);
+            color: white;
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        #essay-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        #submit-essay {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1.2rem 2.5rem;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: 700;
+            transition: transform 0.2s;
+        }
+
+        #submit-essay:active {
+            transform: scale(0.95);
+        }
+
+        #feedback {
+            margin-top: 1.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            min-height: 2rem;
+        }
+
+        #score-screen {
+            display: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .score-val {
+            font-size: 4rem;
+            color: var(--secondary-color);
+            margin: 1.5rem 0;
+            font-weight: 800;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+        }
+
+        .restart-btn {
+            background: var(--secondary-color);
+            color: #000;
+            border: none;
+            padding: 1.2rem 2.5rem;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="quiz-section">
+        <div class="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+        <div id="timer">20</div>
+        <div id="question-text">Entering the Jungle...</div>
+        
+        <div id="options" class="options-container"></div>
+        
+        <div id="essay-container" class="hidden">
+            <textarea id="essay-input" rows="4" placeholder="Share your scientific knowledge..."></textarea>
+            <button id="submit-essay">Submit Discovery</button>
+        </div>
+
+        <div id="feedback"></div>
+    </div>
+
+    <div id="score-screen">
+        <h1>Jungle Mission Accomplished!</h1>
+        <p>Your Exploration Score:</p>
+        <div class="score-val" id="final-score">0 / 0</div>
+        <p id="motivational-msg" style="font-size: 1.3rem; line-height: 1.6;"></p>
+        <button class="restart-btn" onclick="location.reload()">Re-explore Jungle</button>
+    </div>
+</div>
+
+<script>
+    const questions = [
+      {"type": "mcq", "question": "Convection currents in the atmosphere are controlled by ……..", "options": ["Precipitation", "Moon’s rotation", "The energy from the sun", "Earth’s rotation"], "answer": "The energy from the sun"},
+      {"type": "mcq", "question": "Extreme weather conditions include all the following, except ………….", "options": ["Drought", "Flooding", "Sandstorms", "Sunrise"], "answer": "Sunrise"},
+      {"type": "mcq", "question": "Drought affects all the following, except ……….", "options": ["People", "Plants", "Buildings", "Animals"], "answer": "Buildings"},
+      {"type": "mcq", "question": "If a driver’s visibility range in sunny weather is up to 5 km, the visibility range may reach ……… in stormy weather", "options": ["1 km or less", "6 km", "8 km", "10 km"], "answer": "1 km or less"},
+      {"type": "mcq", "question": "Dorcas gazelle lives in ……….", "options": ["Tropical area", "Desert area", "North pole", "South pole"], "answer": "Desert area"},
+      {"type": "mcq", "question": "Birds migrate to search for all of the following, except ……..", "options": ["Best conditions for reproduction", "Different food resources", "Another suitable habitat", "Another unsuitable climate"], "answer": "Another unsuitable climate"},
+      {"type": "mcq", "question": "Photosynthesis process is affected by some environmental factors such as ………….", "options": ["Availability of water only", "Availability of light only", "Availability of water and light", "The length of the plants"], "answer": "Availability of water and light"},
+      {"type": "mcq", "question": "The red sea in Egypt includes all of the following environments, except ………. Environment", "options": ["Marine", "Mountain", "Rain forest", "Coastal"], "answer": "Rain forest"},
+      {"type": "mcq", "question": "The trait that helps emperor penguin to keep its body warm, is the ………..", "options": ["Presence of thin fatty layer", "Presence of thick fatty layer", "Absence of feathers around its eyes", "Absence of feathers around its body"], "answer": "Presence of thick fatty layer"},
+      {"type": "mcq", "question": "Poison dart frog lives in ………. Environment", "options": ["Arctic", "Antarctic", "Desert", "Tropical rain forest"], "answer": "Tropical rain forest"},
+      {"type": "mcq", "question": "Acacia tree and arctic fox live in ………..", "options": ["Desert environment", "Arctic environment", "Rain forest environment", "Two different environments"], "answer": "Two different environments"},
+      {"type": "mcq", "question": "In the arctic ecosystem, ………..", "options": ["Grasses feed on wolves", "Grasses feed on caribou", "Caribou feeds on wolves", "Wolves feed on caribou"], "answer": "Wolves feed on caribou"},
+      {"type": "mcq", "question": "Plants, animals and water are ………..", "options": ["Biotic factors only", "Abiotic factors only", "Biotic and abiotic factors", "Behavioral characteristics"], "answer": "Biotic and abiotic factors"},
+      {"type": "mcq", "question": "The plant’s growth is affected by …………", "options": ["Amount of darkness", "Intensity of light only", "Duration of light only", "Intensity and duration of light"], "answer": "Intensity and duration of light"},
+      {"type": "mcq", "question": "Transferring of some properties from parents to offspring occurs in …………", "options": ["Living organisms only", "Nonliving things", "Living organisms and nonliving things", "Soil, air, water and sunlight"], "answer": "Living organisms only"},
+      {"type": "mcq", "question": "Transferring of genetic factors happens in ………..", "options": ["Humans only", "Animals only", "Humans and animals", "Humans, animals and plants"], "answer": "Humans, animals and plants"},
+      {"type": "mcq", "question": "Appearance of inherited traits on offspring, is due to passing down ……….. from their parents", "options": ["Environmental factors", "Behaviors", "Genetic factors", "Leaves"], "answer": "Genetic factors"},
+      {"type": "mcq", "question": "Sphynx cats and Birman cats are different in the ………", "options": ["Number of eyes", "Number of ears", "Number of legs", "Length of hair"], "answer": "Length of hair"},
+      {"type": "mcq", "question": "Bad habits in humans lifestyle include ……….", "options": ["Eating healthy food", "Doing exercises", "Drinking more soda", "Avoid smoking"], "answer": "Drinking more soda"},
+      {"type": "mcq", "question": "The part of the soil which is used to make glue like substance that bind materials together is ............", "options": ["Topsoil only", "Subsoil only", "Topsoil and subsoil", "Topsoil and ground water"], "answer": "Subsoil only"},
+      {"type": "mcq", "question": "From the reasons which increase water pollution ...........", "options": ["Treatment of sewage and industrial water", "Getting rid of trash in correct ways", "Increasing the industries which use water", "Using soil fences and sedimentation ponds"], "answer": "Increasing the industries which use water"},
+      {"type": "mcq", "question": "Deforestation, .................. and overgrazing cause the increase of the ...................of the land", "options": ["Drought- fertility", "Drought – infertility", "Fertilizers- deforestation"], "answer": "Drought – infertility"},
+      {"type": "mcq", "question": "Overpopulation leads to the decrease in all the following except .................", "options": ["Food", "Water", "Shelter", "Habitat destruction"], "answer": "Habitat destruction"},
+      {"type": "mcq", "question": "Silt soil contains .............. particles and its color is ............", "options": ["Large-yellow", "Medium-dark", "Large-dark", "Medium- gray"], "answer": "Medium-dark"},
+      {"type": "mcq", "question": "There are .................... between particles which contain ............ and air", "options": ["Water-plants", "Humans- animals", "Pore spaces- water", "Dead plants- dead animals"], "answer": "Pore spaces- water"},
+      {"type": "tf", "question": "Collecting data is the only step in weather forecasting", "answer": false},
+      {"type": "tf", "question": "When the air is cooled, it rises up", "answer": false},
+      {"type": "tf", "question": "Transfer of heat by convection occurs in solids, liquids and gases", "answer": false},
+      {"type": "tf", "question": "When rain doesn’t fall, soil may dry and plants may die", "answer": true},
+      {"type": "tf", "question": "Sandstorms blow up from a dry area such as seas and oceans", "answer": false},
+      {"type": "tf", "question": "Floods may cause death of people and animals", "answer": true},
+      {"type": "tf", "question": "Thorns on a plant stem, is an example of structural adaptation", "answer": true},
+      {"type": "tf", "question": "Birds migrate to areas that have no food or water", "answer": false},
+      {"type": "tf", "question": "Availability of water is a genetic factor that affects the growth of trees and shrubs in an ecosystem", "answer": false},
+      {"type": "tf", "question": "Different types of environments have different types of plants and animals", "answer": true},
+      {"type": "tf", "question": "Acacia trees and palms are adapted to live in desert environment", "answer": true},
+      {"type": "tf", "question": "The skin of poison dart frog can’t protect it from predators", "answer": false},
+      {"type": "tf", "question": "Biotic factors of an ecosystem include sunlight, air and water", "answer": false},
+      {"type": "tf", "question": "Antarctica is a hot desert biome", "answer": false},
+      {"type": "tf", "question": "Chrysanthemum plant can produce flowers when the nights are longer than days", "answer": true},
+      {"type": "tf", "question": "Inherited traits not affect the structure of living organisms", "answer": false},
+      {"type": "tf", "question": "All Birman cats have white, very short and silky hair", "answer": false},
+      {"type": "tf", "question": "Transferring of inherited traits through generations of desert plants, make them more adapted to survive in extreme desert conditions", "answer": true},
+      {"type": "tf", "question": "Environmental and genetic factors affect the behaviors, structure and the growth of living organisms", "answer": true},
+      {"type": "tf", "question": "Genes carry inherited traits from parents to their offspring", "answer": true},
+      {"type": "tf", "question": "Wind and water help in the formation of the soil", "answer": true},
+      {"type": "tf", "question": "The main component of the soil is the organic materials only", "answer": false},
+      {"type": "tf", "question": "All components of the soil can be seen by naked eyes", "answer": false},
+      {"type": "tf", "question": "The difference between sand soil and clay soil is the color only", "answer": false},
+      {"type": "essay", "question": "A scientist who studies the atmosphere to understand Earth’s weather", "answer": "Meteorologist", "keywords": ["meteorologist", "studies atmosphere", "weather"]},
+      {"type": "essay", "question": "A side of mountain ranges at coastal regions that faces the coast", "answer": "Wet side", "keywords": ["wet side", "faces the coast"]},
+      {"type": "essay", "question": "Science that studies the weather conditions", "answer": "Meteorology", "keywords": ["meteorology", "studies weather"]},
+      {"type": "essay", "question": "A device used to measure temperature", "answer": "Thermometer", "keywords": ["thermometer", "measure temperature"]},
+      {"type": "essay", "question": "It is the weight of the air above an area", "answer": "Atmospheric pressure", "keywords": ["atmospheric pressure", "weight of air"]},
+      {"type": "essay", "question": "A phenomenon in which the condensed water vapor falls on the Earth’s surface in the form of rain, snow, sleet or hail", "answer": "Precipitation", "keywords": ["precipitation", "rain", "snow", "sleet", "hail"]},
+      {"type": "essay", "question": "It is a natural phenomenon that occurs when the level of water in a river increases until it overflows its banks", "answer": "Flooding", "keywords": ["flooding", "river", "overflows"]},
+      {"type": "essay", "question": "A phenomenon in which very strong winds blow up dust that reduces the visibility during driving cars", "answer": "Sandstorms", "keywords": ["sandstorms", "strong winds", "dust", "visibility"]},
+      {"type": "essay", "question": "A process through which the living organisms are able to live and survive in its environment", "answer": "Adaptation", "keywords": ["adaptation", "survive", "environment"]},
+      {"type": "essay", "question": "It is a type of behavioral adaptation in which animals move in a certain season from one place to another", "answer": "Bird migration", "keywords": ["bird migration", "move", "season"]},
+      {"type": "essay", "question": "It is a change in the body structure of living organisms the helps them to survive", "answer": "Structural adaptation", "keywords": ["structural adaptation", "body structure", "survive"]},
+      {"type": "essay", "question": "It contains biotic factors and abiotic factors that interact with each other", "answer": "Ecosystem", "keywords": ["ecosystem", "biotic", "abiotic", "interact"]},
+      {"type": "essay", "question": "It is a desert biome that has a cold climate all the year", "answer": "Antarctica", "keywords": ["antarctica", "desert biome", "cold climate"]},
+      {"type": "essay", "question": "It is the factor that controls which trait get inherited from parents to their offspring", "answer": "Genetic factors", "keywords": ["genetic factors", "inherited", "parents to offspring"]},
+      {"type": "essay", "question": "Give reason: Sandstorms have harmful effects on human health", "answer": "Because they harm the human eyes and respiratory system", "keywords": ["eyes", "respiratory system", "breathing", "harmful"]},
+      {"type": "essay", "question": "Give reason: Falcons and eagles migrate to Egypt in winter", "answer": "because Egypt in winter has a moderate climate condition", "keywords": ["moderate climate", "egypt", "winter"]},
+      {"type": "essay", "question": "Give reason: Poison dart frog has colorful poisonous skin", "answer": "To protect itself from predators", "keywords": ["protect", "predators"]},
+      {"type": "essay", "question": "Give reason: Some plants which live in desert environment have long roots", "answer": "To get the deep groundwater", "keywords": ["deep groundwater", "long roots"]},
+      {"type": "essay", "question": "Give reason: A Birman kitten has a long and silky hair", "answer": "Because it inherits this trait from its parents", "keywords": ["inherits", "trait", "parents"]},
+      {"type": "essay", "question": "Give reason: Decomposers have very important role in soil formation", "answer": "Because they recycle the remains of dead animal and plants into chemical nutrients in the soil", "keywords": ["recycle", "dead animal", "dead plants", "nutrients"]},
+      {"type": "essay", "question": "Give reason: The soil that retains medium amount of water is more fertile", "answer": "Because it keeps the organic materials that helps the plant to grow", "keywords": ["organic materials", "plant grow", "fertile"]},
+      {"type": "essay", "question": "What is meant by: Adaptation", "answer": "A process or trait that helps a living organism survive in its environment.", "keywords": ["process", "trait", "survive", "environment"]},
+      {"type": "essay", "question": "What is meant by: Transpiration", "answer": "A form of evaporation that occurs from plant leaves through stomata.", "keywords": ["evaporation", "plant leaves", "stomata"]},
+      {"type": "essay", "question": "What is meant by: Condensation", "answer": "The process in which matter changes from gas state to liquid state when it loses energy.", "keywords": ["gas to liquid", "loses energy"]},
+      {"type": "essay", "question": "What is meant by: Evaporation", "answer": "The process in which matter changes from liquid state to gas state when it gains energy.", "keywords": ["liquid to gas", "gains energy"]},
+      {"type": "essay", "question": "What is meant by: Convection", "answer": "Heat transfer in liquids and gases where hot, less dense molecules rise and cooler, denser molecules sink.", "keywords": ["heat transfer", "liquids and gases", "hot rise", "cold sink"]}
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let timer;
+    let timeLeft;
+    let isAnswered = false;
+
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options');
+    const essayContainer = document.getElementById('essay-container');
+    const essayInput = document.getElementById('essay-input');
+    const submitEssayBtn = document.getElementById('submit-essay');
+    const feedback = document.getElementById('feedback');
+    const timerDisplay = document.getElementById('timer');
+    const progressBar = document.getElementById('progress-bar');
+    const quizSection = document.getElementById('quiz-section');
+    const scoreScreen = document.getElementById('score-screen');
+    const finalScoreDisplay = document.getElementById('final-score');
+    const motivationalMsg = document.getElementById('motivational-msg');
+
+    function startTimer(seconds) {
+        timeLeft = seconds;
+        timerDisplay.textContent = timeLeft;
+        timerDisplay.classList.remove('timer-red');
+        
+        clearInterval(timer);
+        timer = setInterval(() => {
+            timeLeft--;
+            timerDisplay.textContent = timeLeft;
+            
+            if (timeLeft <= 5) {
+                timerDisplay.classList.add('timer-red');
+            }
+            
+            if (timeLeft <= 0) {
+                clearInterval(timer);
+                if (!isAnswered) {
+                    handleTimeout();
+                }
+            }
+        }, 1000);
+    }
+
+    function handleTimeout() {
+        isAnswered = true;
+        feedback.textContent = "Time's up! The jungle moves on...";
+        feedback.style.color = "#e74c3c";
+        setTimeout(nextQuestion, 2000);
+    }
+
+    function loadQuestion() {
+        isAnswered = false;
+        feedback.textContent = "";
+        essayInput.value = "";
+        
+        const q = questions[currentQuestionIndex];
+        questionText.textContent = `${currentQuestionIndex + 1}. ${q.question}`;
+        
+        progressBar.style.width = `${((currentQuestionIndex) / questions.length) * 100}%`;
+
+        if (q.type === 'mcq' || q.type === 'tf') {
+            optionsContainer.classList.remove('hidden');
+            essayContainer.classList.add('hidden');
+            optionsContainer.innerHTML = '';
+            
+            const opts = q.type === 'tf' ? [true, false] : q.options;
+            opts.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = q.type === 'tf' ? (opt ? "True" : "False") : opt;
+                btn.onclick = () => checkAnswer(opt, btn);
+                optionsContainer.appendChild(btn);
+            });
+            startTimer(20);
+        } else {
+            optionsContainer.classList.add('hidden');
+            essayContainer.classList.remove('hidden');
+            startTimer(90);
+        }
+    }
+
+    function checkAnswer(selected, btn) {
+        if (isAnswered) return;
+        isAnswered = true;
+        clearInterval(timer);
+
+        const q = questions[currentQuestionIndex];
+        const correct = q.answer;
+
+        if (selected === correct) {
+            score++;
+            btn.classList.add('correct');
+            feedback.textContent = "Correct! Your jungle instincts are sharp!";
+            feedback.style.color = "#2ecc71";
+        } else {
+            btn.classList.add('wrong');
+            feedback.textContent = `Watch out! The correct path was: ${q.type === 'tf' ? (correct ? "True" : "False") : correct}`;
+            feedback.style.color = "#e74c3c";
+        }
+
+        setTimeout(nextQuestion, 2000);
+    }
+
+    function evaluateEssay(studentAnswer, modelAnswer, keywords) {
+        const studentLower = studentAnswer.toLowerCase();
+        const modelLower = modelAnswer.toLowerCase();
+        
+        let matches = 0;
+        keywords.forEach(kw => {
+            if (studentLower.includes(kw.toLowerCase())) {
+                matches++;
+            }
+        });
+
+        const scorePercentage = matches / keywords.length;
+        
+        if (scorePercentage >= 0.5 || studentLower.includes(modelLower)) {
+            return {
+                correct: true,
+                feedback: "Spot on! You truly understand this jungle ecosystem."
+            };
+        } else {
+            return {
+                correct: false,
+                feedback: `Close, but the jungle needs more detail. Remember: ${keywords.join(', ')}.`
+            };
+        }
+    }
+
+    submitEssayBtn.onclick = () => {
+        if (isAnswered) return;
+        const studentAnswer = essayInput.value.trim();
+        if (!studentAnswer) return;
+
+        isAnswered = true;
+        clearInterval(timer);
+
+        const q = questions[currentQuestionIndex];
+        const result = evaluateEssay(studentAnswer, q.answer, q.keywords);
+
+        if (result.correct) {
+            score++;
+            feedback.style.color = "#2ecc71";
+        } else {
+            feedback.style.color = "#e74c3c";
+        }
+        feedback.textContent = result.feedback;
+
+        setTimeout(nextQuestion, 3000);
+    };
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+        } else {
+            showScore();
+        }
+    }
+
+    function showScore() {
+        quizSection.classList.add('hidden');
+        scoreScreen.style.display = 'block';
+        finalScoreDisplay.textContent = `${score} / ${questions.length}`;
+        
+        const percentage = (score / questions.length) * 100;
+        if (percentage >= 80) {
+            motivationalMsg.textContent = "Jungle Master! You've successfully navigated the wildest terrains of science! 🌿🏆";
+        } else if (percentage >= 50) {
+            motivationalMsg.textContent = "Great Explorer! You survived the jungle, but keep sharpening your tools! 🗺️";
+        } else {
+            motivationalMsg.textContent = "A brave attempt! The jungle is tough, but study hard and you'll conquer it next time! ⛺";
+        }
+    }
+
+    loadQuestion();
+</script>
+
+</body>
+</html>
